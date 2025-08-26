@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h4 class="m-0">流程模板</h4>
+    <a href="{% url 'flow_template_create' %}" class="btn btn-primary btn-sm">新建模板</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>编码</th>
+          <th>名称</th>
+          <th>状态</th>
+          <th>版本</th>
+          <th>更新时间</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for x in items %}
+          <tr>
+            <td class="font-monospace">{{ x.code }}</td>
+            <td>{{ x.name }}</td>
+            <td>{{ x.get_status_display }}</td>
+            <td>{{ x.version }}</td>
+            <td>{{ x.updated_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-muted">暂无模板</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3" style="max-width: 720px;">
+  <h4 class="mb-3">新建流程模板</h4>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">模板编码</label>
+      {{ form.code }}
+      {% if form.code.errors %}<div class="text-danger small">{{ form.code.errors }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">模板名称</label>
+      {{ form.name }}
+      {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">说明</label>
+      {{ form.description }}
+      {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">主表单（FormSchema）</label>
+      {{ form.form }}
+      {% if form.form.errors %}<div class="text-danger small">{{ form.form.errors }}</div>{% endif %}
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">状态</label>
+        {{ form.status }}
+        {% if form.status.errors %}<div class="text-danger small">{{ form.status.errors }}</div>{% endif %}
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">版本号</label>
+        {{ form.version }}
+        {% if form.version.errors %}<div class="text-danger small">{{ form.version.errors }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary btn-sm">保存</button>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'flow_template_list' %}">返回</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

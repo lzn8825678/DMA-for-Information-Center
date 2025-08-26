@@ -370,21 +370,3 @@ def return_detail(request, out_id):
         'workorder': workorder,
         'qc': qc,
     })
-from flow.services import start_process, get_binding_instance
-from django.shortcuts import get_object_or_404, redirect
-from digitization.models import Outbound
-@login_required
-def start_outbound_process(request, pk):
-    slip = get_object_or_404(Outbound, pk=pk)
-    # 若已绑定流程，不重复发起
-    if get_binding_instance(slip):
-        # 已有流程，直接去我的待办看任务
-        return redirect("flow:my_tasks")
-
-    inst = start_process(
-        process_code="paper_digitization_std",  # 后台配置的流程编码
-        starter=request.user,
-        biz_object=slip,
-        description="出库单发起质检流程"
-    )
-    return redirect("flow:my_tasks")

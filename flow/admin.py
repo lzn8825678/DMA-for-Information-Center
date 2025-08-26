@@ -1,38 +1,46 @@
 from django.contrib import admin
-from .models import ProcessTemplate, NodeTemplate, ProcessInstance, NodeInstance, Task, Binding
+from .models import FormSchema, FlowTemplate, FlowNode, Transition, FlowInstance, WorkItem, ActionLog
 
-@admin.register(ProcessTemplate)
-class ProcessTemplateAdmin(admin.ModelAdmin):
-    list_display = ("name", "code", "is_active")
-    search_fields = ("name", "code")
-    list_filter = ("is_active",)
+@admin.register(FormSchema)
+class FormSchemaAdmin(admin.ModelAdmin):
+    list_display = ('id','name','updated_at')
+    search_fields = ('name',)
 
-@admin.register(NodeTemplate)
-class NodeTemplateAdmin(admin.ModelAdmin):
-    list_display = ("process", "name", "code", "node_type", "order", "assigned_group_name", "assigned_user")
-    list_filter = ("process", "node_type")
-    search_fields = ("name", "code")
-    ordering = ("process", "order")
 
-@admin.register(ProcessInstance)
-class ProcessInstanceAdmin(admin.ModelAdmin):
-    list_display = ("id", "process", "starter", "status", "start_time", "end_time")
-    list_filter = ("status", "process")
-    search_fields = ("id", "process__name", "starter__username")
+class FlowNodeInline(admin.TabularInline):
+    model = FlowNode
+    extra = 0
 
-@admin.register(NodeInstance)
-class NodeInstanceAdmin(admin.ModelAdmin):
-    list_display = ("id", "process_instance", "node_template", "status", "arrived_at", "finished_at", "handler")
-    list_filter = ("status", "node_template__process")
-    search_fields = ("process_instance__id", "node_template__name")
 
-@admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
-    list_display = ("id", "assignee", "node_instance", "status", "created_at", "finished_at")
-    list_filter = ("status",)
-    search_fields = ("assignee__username",)
+class TransitionInline(admin.TabularInline):
+    model = Transition
+    fk_name = 'template'
+    extra = 0
 
-@admin.register(Binding)
-class BindingAdmin(admin.ModelAdmin):
-    list_display = ("process_instance", "content_type", "object_id")
-    search_fields = ("process_instance__id",)
+@admin.register(FlowTemplate)
+class FlowTemplateAdmin(admin.ModelAdmin):
+    list_display = ('id','code','name','status','version','updated_at')
+    list_filter = ('status',)
+    search_fields = ('code','name')
+    inlines = [FlowNodeInline, TransitionInline]
+
+
+@admin.register(FlowInstance)
+class FlowInstanceAdmin(admin.ModelAdmin):
+    list_display = ('id','template','title','status','starter','current_node','updated_at')
+    list_filter = ('status','template')
+    search_fields = ('title',)
+
+
+@admin.register(WorkItem)
+class WorkItemAdmin(admin.ModelAdmin):
+    list_display = ('id','instance','node','status','owner','updated_at')
+    list_filter = ('status','node__template')
+    search_fields = ('instance__title',)
+
+
+@admin.register(ActionLog)
+class ActionLogAdmin(admin.ModelAdmin):
+    list_display = ('id','instance','node','user','action','created_at')
+    list_filter = ('action','node__template')
+    search_fields = ('remark',)
