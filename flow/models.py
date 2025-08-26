@@ -13,11 +13,11 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 class FormSchema(TimeStampedModel):
-    """动态表单：以 JSON Schema 存字段定义，UI Schema 做渲染提示。"""
     name = models.CharField(max_length=200, unique=True, verbose_name='表单名称')
     description = models.TextField(blank=True, verbose_name='说明')
-    json_schema = models.JSONField(default=dict, verbose_name='JSON Schema')
-    ui_schema = models.JSONField(default=dict, verbose_name='UI Schema')
+    json_schema = models.JSONField(default=dict, blank=True, verbose_name='JSON Schema')
+    ui_schema = models.JSONField(default=dict, blank=True, verbose_name='UI Schema')
+
     def __str__(self):
         return self.name
 
@@ -57,17 +57,13 @@ class FlowNode(TimeStampedModel):
     code = models.SlugField(max_length=64, verbose_name='节点编码')
     name = models.CharField(max_length=200, verbose_name='节点名称')
     type = models.CharField(max_length=16, choices=NodeType.choices, default=NodeType.TASK, verbose_name='节点类型')
-    assignees = models.JSONField(default=list, verbose_name='指派规则')
-    """
-    assignees 示例如下：
-    [
-        {"type":"user_ids", "value":[1,2]},
-        {"type":"group_names", "value":["领导","数字化室"]},
-        {"type":"by_field", "value":"applicant"} # 从表单值里取用户ID字段
-    ]
-    """
+
+    # 这里加 blank=True
+    assignees = models.JSONField(default=list, blank=True, verbose_name='指派规则')
     allow_claim = models.BooleanField(default=False, verbose_name='是否抢单模式（组内认领）')
-    form_overrides = models.JSONField(default=dict, verbose_name='表单覆盖/权限')
+
+    # 这里加 blank=True
+    form_overrides = models.JSONField(default=dict, blank=True, verbose_name='表单覆盖/权限')
     """
     form_overrides: 控制本节点表单哪些字段可见/可编辑/必填
     {
@@ -138,7 +134,7 @@ class WorkItemStatus(models.TextChoices):
 class WorkItem(TimeStampedModel):
     instance = models.ForeignKey(FlowInstance, on_delete=models.CASCADE, related_name='work_items', verbose_name='所属实例')
     node = models.ForeignKey(FlowNode, on_delete=models.CASCADE, related_name='work_items', verbose_name='节点')
-    assignees = models.JSONField(default=list, verbose_name='候选处理人')
+    assignees = models.JSONField(default=list, blank=True, verbose_name='候选处理人')
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='owned_work_items', verbose_name='当前处理人')
     status = models.CharField(max_length=16, choices=WorkItemStatus.choices, default=WorkItemStatus.OPEN, verbose_name='状态')
     due_at = models.DateTimeField(null=True, blank=True, verbose_name='到期时间')

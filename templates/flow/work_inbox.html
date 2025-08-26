@@ -30,6 +30,14 @@
             <td>
               <a href="{% url 'flow_work_submit' w.id %}" class="btn btn-primary btn-sm">处理</a>
             </td>
+          <td>
+  <a href="{% url 'flow_work_submit' w.id %}" class="btn btn-primary btn-sm">处理</a>
+  {% if w.status == 'open' %}
+    <a href="{% url 'flow_work_claim' w.id %}" class="btn btn-outline-secondary btn-sm">认领</a>
+  {% elif w.status == 'claimed' and w.owner_id == request.user.id %}
+    <a href="{% url 'flow_work_release' w.id %}" class="btn btn-outline-warning btn-sm">释放</a>
+  {% endif %}
+</td>
           </tr>
         {% empty %}
           <tr><td colspan="7" class="text-muted">暂无待办</td></tr>
