@@ -4,6 +4,7 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from .models import (FlowTemplate, FlowNode, Transition, FlowInstance, WorkItem, WorkItemStatus, InstanceStatus, ActionLog)
 from .utils import safe_eval, merge_overrides, validate_form, schema_properties, normalize_types
+from django.db.models import Q
 
 U = get_user_model()
 
@@ -19,6 +20,24 @@ SAFE_BUILTINS = {
     'all': all,
 }
 
+def _overrides_from_rules(node, schema):
+    """
+    返回 dict: {"hidden": set(), "readonly": set(), "required": set()}
+    优先使用 NodeFieldRule；若该节点没有任何规则，则回落到旧 JSON form_overrides（兼容期）。
+    """
+    rules = list(node.field_rules.all())
+    if rules:
+        res = {"hidden": set(), "readonly": set(), "required": set()}
+        for r in rules:
+            if r.hidden:
+                res["hidden"].add(r.field_name)
+            if r.readonly:
+                res["readonly"].add(r.field_name)
+            if r.required:
+                res["required"].add(r.field_name)
+        return res
+    # 回落旧 JSON（兼容以前的 form_overrides）
+    return merge_overrides(schema, node.form_overrides)
 def _eval_condition(expr: str, form: Dict[str, Any], action: str|None=None) -> bool:
     # 使用安全表达式，允许引用 form[...] 和 action
     ctx = {"form": form, "action": action}
@@ -27,15 +46,33 @@ def _eval_condition(expr: str, form: Dict[str, Any], action: str|None=None) -> b
     except Exception:
         return False
 
-def _resolve_assignees(node: FlowNode, form: Dict[str, Any]) -> List[int]:
-    """根据指派规则计算候选处理人（返回用户ID列表）。"""
-    user_ids: set[int] = set()
+def _resolve_assignees(node, form):
+    """
+    返回用户ID列表。优先使用新字段 assigned_users/assigned_departments；
+    若都为空，则回落到旧 JSON assignees（兼容期）。
+    """
+    user_ids = set()
+
+    # ✅ 新：直接读关系
+    if node.assigned_users.exists() or node.assigned_departments.exists():
+        if node.assigned_users.exists():
+            user_ids.update(node.assigned_users.values_list("id", flat=True))
+
+        if node.assigned_departments.exists():
+            # 假设用户模型有 department 外键
+            dept_ids = list(node.assigned_departments.values_list("id", flat=True))
+            user_ids.update(
+                U.objects.filter(department_id__in=dept_ids).values_list("id", flat=True)
+            )
+        return list(user_ids)
+
+    # ⬇️ 旧：回落 JSON（如还没迁移完）
     rules = node.assignees or []
     for r in rules:
         rtype = r.get('type')
         val = r.get('value')
         if rtype == 'user_ids' and isinstance(val, list):
-            user_ids.update([int(x) for x in val])
+            user_ids.update(int(x) for x in val)
         elif rtype == 'by_field' and isinstance(val, str):
             uid = form.get(val)
             if isinstance(uid, int):
@@ -43,6 +80,9 @@ def _resolve_assignees(node: FlowNode, form: Dict[str, Any]) -> List[int]:
         elif rtype == 'group_names' and isinstance(val, list):
             qs = U.objects.filter(groups__name__in=val).values_list('id', flat=True)
             user_ids.update(qs)
+        elif rtype in ('dept_ids','dept_names'):
+            # 如果历史 JSON 里有科室信息，也做一次兼容性解析（可按需扩展）
+            pass
     return list(user_ids)
 
 @transaction.atomic
@@ -102,7 +142,7 @@ def submit_task(work_item: WorkItem, user: U, action: str, comment: str|None, ne
     # 合并表单
     schema = tpl.form.json_schema or {}
     props = schema_properties(schema)
-    overrides = merge_overrides(schema, node.form_overrides)
+    overrides = _overrides_from_rules(node, schema)
 
     old_form = ins.form_data.copy()
     new_data = (new_form_data or {}).copy()

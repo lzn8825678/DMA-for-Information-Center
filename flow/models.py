@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator
 
 User = settings.AUTH_USER_MODEL
+DEPT_MODEL_PATH = 'users.Department'
 
 class TimeStampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -58,31 +59,46 @@ class FlowNode(TimeStampedModel):
     name = models.CharField(max_length=200, verbose_name='节点名称')
     type = models.CharField(max_length=16, choices=NodeType.choices, default=NodeType.TASK, verbose_name='节点类型')
 
-    # 这里加 blank=True
-    assignees = models.JSONField(default=list, blank=True, verbose_name='指派规则')
+    # ✅ 新增：直接选择用户/科室
+    assigned_users = models.ManyToManyField(
+        User, blank=True, related_name='flow_assigned_nodes', verbose_name='指派用户（可多选）'
+    )
+    assigned_departments = models.ManyToManyField(
+        DEPT_MODEL_PATH, blank=True, related_name='flow_assigned_nodes', verbose_name='指派科室（可多选）'
+    )
+
     allow_claim = models.BooleanField(default=False, verbose_name='是否抢单模式（组内认领）')
 
-    # 这里加 blank=True
-    form_overrides = models.JSONField(default=dict, blank=True, verbose_name='表单覆盖/权限')
-    """
-    form_overrides: 控制本节点表单哪些字段可见/可编辑/必填
-    {
-        "readonly": ["fieldA"],
-        "hidden": ["internal_note"],
-        "required": ["approve_comment"]
-    }
-    """
+    # ❗️保留但标注已废弃的 JSON 字段（便于兼容老数据；后续可数据迁移后删除）
+    assignees = models.JSONField(default=list, blank=True, verbose_name='[废弃] 指派规则(JSON)')
+    form_overrides = models.JSONField(default=dict, blank=True, verbose_name='[废弃] 表单覆盖/权限(JSON)')
 
-
-class Meta:
-    unique_together = ('template', 'code')
-    ordering = ['id']
-    verbose_name = '流程节点'
-    verbose_name_plural = '流程节点'
-
+    class Meta:
+        unique_together = ('template', 'code')
+        ordering = ['id']
+        verbose_name = '流程节点'
+        verbose_name_plural = '流程节点'
 
     def __str__(self):
         return f"{self.template.code}:{self.code}-{self.name}"
+
+class NodeFieldRule(TimeStampedModel):
+    """
+    字段级权限规则（替代 JSON 覆盖），一行代表一个字段的规则。
+    """
+    node = models.ForeignKey(FlowNode, on_delete=models.CASCADE, related_name='field_rules', verbose_name='节点')
+    field_name = models.CharField(max_length=100, verbose_name='字段名')  # 必须与 FormSchema.json_schema.properties 的 key 对应
+    hidden = models.BooleanField(default=False, verbose_name='隐藏')
+    readonly = models.BooleanField(default=False, verbose_name='只读')
+    required = models.BooleanField(default=False, verbose_name='必填')
+
+    class Meta:
+        unique_together = ('node', 'field_name')
+        verbose_name = '字段权限规则'
+        verbose_name_plural = '字段权限规则'
+
+    def __str__(self):
+        return f"{self.node}::{self.field_name} (H:{self.hidden}, R:{self.readonly}, Q:{self.required})"
 
 class Transition(TimeStampedModel):
     template = models.ForeignKey(FlowTemplate, on_delete=models.CASCADE, related_name='transitions', verbose_name='所属模板')
