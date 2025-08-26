@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}文件列表{% endblock %}
+{% block content %}
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+<div class="d-flex justify-content-between mb-3">
+    <h3>📁 文件列表</h3>
+    <a href="{% url 'upload_file' %}" class="btn btn-primary">➕ 上传文件</a>
+</div>
+
+<form method="get" class="form-inline mb-3">
+    <select name="category" class="form-control mr-2">
+        <option value="">全部分类</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if cat.id == selected_category %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+    </select>
+    <input type="text" name="q" value="{{ query }}" class="form-control mr-2" placeholder="搜索文件标题...">
+    <button type="submit" class="btn btn-primary">筛选</button>
+</form>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>标题</th>
+            <th>分类</th>
+            <th>上传者</th>
+            <th>上传时间</th>
+            <th>下载</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in page_obj %}
+            <tr>
+                <td>{{ f.title }}</td>
+                <td>{{ f.category.name }}</td>
+                <td>{{ f.uploaded_by.full_name }}</td>
+                <td>{{ f.uploaded_at|date:"Y-m-d H:i" }}</td>
+                <td><a href="{{ f.file.url }}" target="_blank" download>下载</a></td>
+                <td>
+                    {% if request.user == f.uploaded_by or request.user.is_superuser %}
+                    <form method="post" action="{% url 'delete_file' f.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除吗？');">删除</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">暂无文件</td></tr>
+            {% endfor %}
+    </tbody>
+</table>
+<nav aria-label="分页" class="mt-4">
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if selected_category %}category={{ selected_category }}&{% endif %}{% if query %}q={{ query }}&{% endif %}page={{ page_obj.previous_page_number }}">上一页</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">上一页</span></li>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+      {% else %}
+        <li class="page-item">
+          <a class="page-link" href="?{% if selected_category %}category={{ selected_category }}&{% endif %}{% if query %}q={{ query }}&{% endif %}page={{ num }}">{{ num }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if selected_category %}category={{ selected_category }}&{% endif %}{% if query %}q={{ query }}&{% endif %}page={{ page_obj.next_page_number }}">下一页</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">下一页</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endblock %}

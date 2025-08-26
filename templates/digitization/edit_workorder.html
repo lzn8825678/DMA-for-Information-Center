@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}填写数字化工作单{% endblock %}
+
+{% block content %}
+<div class="login-card">
+    <h3 class="text-center mb-4">填写数字化工作单</h3>
+
+    <div class="mb-3">
+        <p><strong>批次号：</strong>{{ wo.batch_no }}</p>
+        <p><strong>资料名称：</strong>{{ wo.out_bound.name }}（{{ wo.out_bound.get_category_display }}）</p>
+        <p><strong>数字化开始时间：</strong>{{ wo.start_time|date:"Y-m-d H:i" }}</p>
+        <p><strong>数字化负责人：</strong>{{ wo.operator.full_name }}</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>题名信息 *</label>
+            <input type="text" name="title" value="{{ wo.title }}" class="form-control" required>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>其它题名信息</label>
+            <input type="text" name="other_title" value="{{ wo.other_title }}" class="form-control">
+        </div>
+
+        <div class="form-group mt-3">
+            <label>主要责任者</label>
+            <input type="text" name="main_responsibility" value="{{ wo.main_responsibility }}" class="form-control">
+        </div>
+
+        <div class="form-group mt-3">
+            <label>其它责任者</label>
+            <input type="text" name="other_responsibility" value="{{ wo.other_responsibility }}" class="form-control">
+        </div>
+
+        <div class="form-group mt-3">
+            <label>出版地</label>
+            <input type="text" name="pub_place" value="{{ wo.pub_place }}" class="form-control">
+        </div>
+
+        <div class="form-group mt-3">
+            <label>出版者</label>
+            <input type="text" name="publisher" value="{{ wo.publisher }}" class="form-control">
+        </div>
+
+        <div class="form-group mt-3">
+            <label>出版年</label>
+            <input type="text" name="pub_year" value="{{ wo.pub_year }}" class="form-control">
+        </div>
+
+        <div class="form-group mt-3">
+            <label>总页数 *</label>
+            <input type="number" name="total_pages" value="{{ wo.total_pages }}" class="form-control" required>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>文献类型标识</label>
+            <input type="text" name="doc_type" value="{{ wo.doc_type }}" class="form-control">
+        </div>
+
+        <div class="form-group mt-3">
+            <label>备注</label>
+            <textarea name="notes" rows="2" class="form-control">{{ wo.notes }}</textarea>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-microsoft btn-block">提交工作单</button>
+            <a href="{% url 'outbound_list' %}" class="btn btn-secondary btn-block mt-2">返回</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

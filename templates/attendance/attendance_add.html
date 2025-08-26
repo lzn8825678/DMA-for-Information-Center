@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}添加考勤记录{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h3 class="mb-4">添加请假 / 加班记录</h3>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="id_type" class="form-label">类型</label>
+      {{ form.type }}
+    </div>
+
+    <div class="mb-3">
+      <label for="id_person_name" class="form-label">人员姓名</label>
+      <input type="text" name="person_name" class="form-control" required placeholder="请输入请假或加班人员姓名">
+    </div>
+
+    <div class="mb-3">
+      <label for="id_start_date" class="form-label">开始时间</label>
+      {{ form.start_date }}
+    </div>
+
+    <div class="mb-3">
+      <label for="id_duration" class="form-label">时长 <small class="text-muted">(请假单位为天 / 加班单位为小时)</small></label>
+      {{ form.duration }}
+    </div>
+
+    <div id="leave-fields" style="display:none;">
+      <div class="mb-3">
+        <label for="id_leave_type" class="form-label">请假类型</label>
+        {{ form.leave_type }}
+      </div>
+      <div class="mb-3">
+        <label for="id_leave_reason" class="form-label">请假事由</label>
+        {{ form.leave_reason }}
+      </div>
+    </div>
+
+    <div id="overtime-fields" style="display:none;">
+      <div class="mb-3">
+        <label for="id_overtime_place" class="form-label">加班地点</label>
+        {{ form.overtime_place }}
+      </div>
+      <div class="mb-3">
+        <label for="id_overtime_reason" class="form-label">加班事由</label>
+        {{ form.overtime_reason }}
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">保存</button>
+    <a href="{% url 'attendance_list' %}" class="btn btn-secondary mt-3">返回</a>
+  </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const typeField = document.getElementById("id_type");
+  const leaveFields = document.getElementById("leave-fields");
+  const overtimeFields = document.getElementById("overtime-fields");
+
+  function toggleFields() {
+    if (typeField.value === "leave") {
+      leaveFields.style.display = "block";
+      overtimeFields.style.display = "none";
+    } else if (typeField.value === "overtime") {
+      leaveFields.style.display = "none";
+      overtimeFields.style.display = "block";
+    } else {
+      leaveFields.style.display = "none";
+      overtimeFields.style.display = "none";
+    }
+  }
+
+  typeField.addEventListener("change", toggleFields);
+  toggleFields();
+});
+</script>
+{% endblock %}

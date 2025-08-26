@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}任务列表{% endblock %}
+
+{% block content %}
+<h3 class="mb-3">我的任务</h3>
+
+{% if 'tasks.add_task' in request.user.get_all_permissions %}
+<a href="{% url 'add_task' %}" class="btn btn-microsoft mb-3">➕ 添加任务</a>
+{% endif %}
+<a href="{% url 'tasks_export' %}" class="btn btn-outline-success mb-3">📤 导出任务报表</a>
+
+<table class="table table-bordered table-hover table-striped">
+    <thead class="thead-light">
+        <tr>
+            <th>状态</th>
+            <th>任务</th>
+            <th>项目</th>
+            <th>负责人</th>
+            <th>创建时间</th>
+            <th>完成时间</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td><span class="check-circle {% if task.is_done %}done{% endif %}" onclick="completeTask({{ task.id }}, this)"></span></td>
+            <td>{{ task.title }}</td>
+            <td>{{ task.project.name }}</td>
+            <td>{{ task.responsible.full_name }}</td>
+            <td>{{ task.created_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ task.completed_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">暂无任务</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- ✅ 分类任务数量图 -->
+<div class="card mt-4">
+  <div class="card-body">
+    <h5 class="card-title">📊 分类任务数量（仅统计已完成）</h5>
+    <div style="height: 300px;">
+      <canvas id="categoryChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ 多项目进度图 -->
+<div class="card mt-5">
+  <div class="card-body">
+    <h5 class="card-title">📈 项目进度占比（每个项目）</h5>
+    <div class="row">
+      {% for p in project_charts %}
+        <div class="col-md-4 text-center mb-4">
+          <strong>{{ p.name }}</strong><br>
+          <small>{{ p.percent }}% 已完成</small>
+          <canvas id="projectChart_{{ forloop.counter }}"></canvas>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- ✅ 一定要放最上面，加载 Chart.js -->
+<script src="{% static 'js/Chart.min.js' %}"></script>
+
+<!-- ✅ 分类柱状图 -->
+<script>
+const ctx = document.getElementById('categoryChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ labels|safe }},
+        datasets: [{
+            label: '任务数量',
+            data: {{ data|safe }},
+            backgroundColor: '#0078D4'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 },
+                title: { display: true, text: '数量' }
+            }
+        }
+    }
+});
+</script>
+
+<!-- ✅ 项目进度饼图 -->
+<script>
+{% for p in project_charts %}
+new Chart(document.getElementById('projectChart_{{ forloop.counter }}').getContext('2d'), {
+    type: 'pie',
+    data: {
+        labels: ['已完成', '未完成'],
+        datasets: [{
+            data: [{{ p.done }}, {{ p.undone }}],
+            backgroundColor: ['#00B294', '#E5E5E5']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+{% endfor %}
+</script>
+
+<!-- ✅ Ajax 标记完成 -->
+<script>
+function completeTask(taskId, el) {
+    fetch(`/tasks/complete/${taskId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            el.classList.add('done');
+        } else {
+            alert(data.error || '操作失败');
+        }
+    });
+}
+</script>
+
+<!-- ✅ 样式 -->
+<style>
+.check-circle {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #0078D4;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+}
+.check-circle.done {
+    background-color: #0078D4;
+}
+.check-circle.done::after {
+    content: '✔';
+    color: white;
+    font-size: 14px;
+    position: absolute;
+    top: -2px;
+    left: 4px;
+}
+</style>
+{% endblock %}

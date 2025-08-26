@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}敦煌文物流散调查{% endblock %}
+
+{% block content %}
+<h3 class="mb-3"> 敦煌文物流散调查</h3>
+<a href="{% url 'add_location' %}" class="btn btn-outline-success mb-3">➕ 添加数据</a>
+
+<ul class="treeview">
+  {% for country, regions in tree.items %}
+    <li>
+      <strong> 国家：{{ country }}</strong>
+      <ul>
+        {% for region, institutions in regions.items %}
+          <li>
+             城市：{{ region }}
+            <ul>
+              {% for institution, data in institutions.items %}
+                <li>
+                   机构：{{ institution }}
+                  <ul>
+                    <li> 收藏数量：<a href="{% url 'relic_logs' data.id %}">{{ data.count }}</a></li>
+                    <li> 数字化百分比：{{ data.digitized_percent }}%</li>
+                    <li> 出版物：
+                      {% if data.publications %}
+                        <ul>
+                          {% for pub in data.publications %}
+                            <li>📄 {{ pub }}</li>
+                          {% endfor %}
+                        </ul>
+                      {% else %}
+                        无出版物
+                      {% endif %}
+                    </li>
+                    <li>🔗 来源：<a href="{% url 'relic_detail' data.id %}">查看</a></li>
+                  </ul>
+                </li>
+              {% endfor %}
+            </ul>
+          </li>
+        {% endfor %}
+      </ul>
+    </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

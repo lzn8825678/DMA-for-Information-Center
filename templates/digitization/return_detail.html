@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3>📄 数字化流程详情</h3>
+
+  <hr>
+  <h5>📚 出库单信息</h5>
+  <ul>
+    <li><strong>资料名称：</strong> {{ outbound.name }}</li>
+    <li><strong>种类：</strong> {{ outbound.get_category_display }}</li>
+    <li><strong>页数：</strong> {{ outbound.pages }}</li>
+    <li><strong>扫描设备：</strong> {{ outbound.get_platen_display }}</li>
+    <li><strong>色纸需求：</strong> {{ outbound.color_paper|yesno:"是,否" }}</li>
+    <li><strong>出库书况：</strong> {{ outbound.condition }}</li>
+    <li><strong>备注：</strong> {{ outbound.notes }}</li>
+    <li><strong>登记人：</strong> {{ outbound.librarian.full_name }}</li>
+    <li><strong>出库时间：</strong> {{ outbound.out_time|date:"Y-m-d H:i" }}</li>
+    <li><strong>承接人：</strong> {{ outbound.taken_by.full_name }}</li>
+    <li><strong>承接时间：</strong> {{ outbound.taken_at|date:"Y-m-d H:i" }}</li>
+  </ul>
+
+  {% if workorder %}
+  <hr>
+  <h5>📝 工作单信息</h5>
+  <ul>
+    <li><strong>批次号：</strong> {{ workorder.batch_no }}</li>
+    <li><strong>题名：</strong> {{ workorder.title }}</li>
+    <li><strong>其它题名：</strong> {{ workorder.other_title }}</li>
+    <li><strong>主要责任者：</strong> {{ workorder.main_responsibility }}</li>
+    <li><strong>其它责任者：</strong> {{ workorder.other_responsibility }}</li>
+    <li><strong>出版地：</strong> {{ workorder.pub_place }}</li>
+    <li><strong>出版者：</strong> {{ workorder.publisher }}</li>
+    <li><strong>出版年：</strong> {{ workorder.pub_year }}</li>
+    <li><strong>总页数：</strong> {{ workorder.total_pages }}</li>
+    <li><strong>文献类型标识：</strong> {{ workorder.doc_type }}</li>
+    <li><strong>登记人员：</strong> {{ workorder.registrar.full_name }}</li>
+    <li><strong>登记时间：</strong> {{ workorder.registered_at|date:"Y-m-d H:i" }}</li>
+    <li><strong>备注：</strong> {{ workorder.notes }}</li>
+  </ul>
+  {% endif %}
+
+  {% if qc %}
+  <hr>
+  <h5>🔍 成果质量检验</h5>
+  <ul>
+    <li><strong>TIFF图片完整：</strong> {{ qc.tiff_complete|yesno:"是,否" }}</li>
+    <li><strong>JPEG一致：</strong> {{ qc.jpeg_consistent|yesno:"是,否" }}</li>
+    <li><strong>PDF合成：</strong> {{ qc.pdf_assembled|yesno:"是,否" }}</li>
+    <li><strong>OCR完成：</strong> {{ qc.ocr_done|yesno:"是,否" }}</li>
+    <li><strong>OCR评分：</strong> {{ qc.ocr_score }}</li>
+    <li><strong>数据完整性：</strong> {{ qc.data_intact|yesno:"是,否" }}</li>
+    <li><strong>检验人：</strong> {{ qc.inspector.full_name }}</li>
+    <li><strong>检验时间：</strong> {{ qc.inspected_at|date:"Y-m-d H:i" }}</li>
+  </ul>
+  {% endif %}
+
+  <hr>
+  <h5>📦 入库信息</h5>
+  <ul>
+    <li><strong>是否已入库：</strong> {{ outbound.is_returned|yesno:"是,否" }}</li>
+    <li><strong>入库时间：</strong> {{ outbound.returned_at|date:"Y-m-d H:i" }}</li>
+  </ul>
+
+  <a href="{% url 'returned_list' %}" class="btn btn-outline-secondary">返回列表</a>
+</div>
+{% endblock %}

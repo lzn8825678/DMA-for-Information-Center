@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <h2>📋 我的审批任务</h2>
+  {% if steps %}
+    <table class="table table-bordered mt-3">
+      <thead class="table-light">
+        <tr>
+          <th>流程名称</th>
+          <th>资料名称</th>
+          <th>当前步骤</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for step in steps %}
+        <tr>
+          <td>{{ step.flow.template.name }}</td>
+          <td>{{ step.flow.content_object.name }}</td>
+          <td>{{ step.role_name }}</td>
+          <td>
+            {% if step.claimed_by and step.claimed_by != user %}
+              <span class="text-danger">已被他人承接</span>
+            {% else %}
+              待处理
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'handle_step' step.id %}" class="btn btn-sm btn-primary">进入处理</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info mt-3">暂无待处理的审批任务。</div>
+  {% endif %}
+</div>
+{% endblock %}

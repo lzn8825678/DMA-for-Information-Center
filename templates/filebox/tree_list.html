@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}📁 文件管理{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- 左侧树形目录 -->
+    <div class="col-md-3">
+      <h5 class="mt-3">📂 分类目录</h5>
+
+
+      <div id="category-tree"></div>
+    </div>
+
+    <!-- 右侧文件卡片区 -->
+    <div class="col-md-9">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">📁 文件卡片展示</h3>
+  <a href="{% url 'upload_file' %}" class="btn btn-primary">+ 上传文件</a>
+</div>
+
+      <form method="get" class="mb-3">
+        <input type="text" name="q" class="form-control" placeholder="搜索文件标题..." value="{{ query }}">
+      </form>
+
+      {% for category, files in grouped_files.items %}
+        <div class="card mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>{{ category }}</strong>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#cat_{{ forloop.counter }}">
+              展开/收起
+            </button>
+          </div>
+          <div class="collapse show" id="cat_{{ forloop.counter }}">
+            <div class="card-body">
+              <div class="row">
+                {% for f in files %}
+                  <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm">
+                      <div class="card-body d-flex flex-column">
+                        <h6 class="card-title">{{ f.title }}</h6>
+                        <p class="card-text small text-muted">上传者：{{ f.uploaded_by.full_name }}</p>
+                        <p class="card-text small text-muted">时间：{{ f.uploaded_at|date:"Y-m-d H:i" }}</p>
+                        <p class="card-text small">{{ f.description|default:"（无备注）" }}</p>
+                        <div class="mt-auto d-flex justify-content-between">
+                          <a href="{{ f.file.url }}" class="btn btn-sm btn-outline-primary" download>下载</a>
+                          {% if request.user == f.uploaded_by or request.user.is_superuser %}
+                          <form method="post" action="{% url 'delete_file' f.id %}" onsubmit="return confirm('确定删除？')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                          </form>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{#    <script>#}
+{#  console.log("🧪 类别总数: ", {{ categories|length }});#}
+{#</script>#}
+    <script src="{% static 'js/jQuery.min.js' %}"></script>
+  <script src="{% static 'js/jstree.min.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const treeData = [
+    {% for cat in categories %}
+      {
+        "id": "{{ cat.id }}",
+        "parent": "{% if cat.parent %}{{ cat.parent.id }}{% else %}#{% endif %}",
+        "text": "{{ cat.name }}",
+        "a_attr": { "href": "?category={{ cat.id }}" }
+      }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  $('#category-tree').jstree({
+    "core": {
+      "data": treeData,
+      "themes": {
+        "responsive": false
+      }
+    },
+    "plugins": ["wholerow"]  // 加这行更好看，行点击也可选中
+  });
+
+  $('#category-tree').on("select_node.jstree", function (e, data) {
+    window.location.href = data.node.a_attr.href;
+  });
+});
+</script>
+{% endblock %}

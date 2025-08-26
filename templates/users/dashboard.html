@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}工作台{% endblock %}
+
+{% block content %}
+    <style>
+  .card-body .btn {
+    white-space: nowrap;
+  }
+</style>
+<div class="container">
+  <h3 class="mb-4">欢迎，{{ request.user.full_name }}</h3>
+
+  <div class="row gy-4">
+
+    <!-- 📋 任务管理模块 -->
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">📋 任务管理模块</h5>
+          <p class="card-text flex-grow-1">管理你的日常任务，查看项目进度。</p>
+          <div class="mt-auto d-flex flex-wrap gap-2">
+            <a href="{% url 'task_list' %}" class="btn btn-outline-primary">进入任务管理</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📦 数字化工作模块 -->
+    {% if is_digital_staff %}
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">📦 数字化工作模块</h5>
+          <p class="card-text flex-grow-1">登记、承接、加工与检验数字化资料。</p>
+          <div class="mt-auto d-flex flex-wrap gap-2">
+            <a href="{% url 'outbound_list' %}" class="btn btn-outline-primary">进入数字化模块</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 📚 图书资料出库登记 -->
+    {% if is_storage_staff %}
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">📚 图书资料出库登记</h5>
+          <p class="card-text flex-grow-1">为即将数字化的纸本文献添加出库单。</p>
+          <div class="mt-auto d-flex flex-wrap gap-2">
+            <a href="{% url 'add_outbound' %}" class="btn btn-outline-primary">添加出库单</a>
+              <a href="{% url 'return_list' %}" class="btn btn-outline-success">登记入库单</a>
+              <a href="{% url 'returned_list' %}" class="btn btn-outline-secondary">已入库记录</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 📁 文件管理模块 -->
+    {% if request.user.is_authenticated %}
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">📁 文件管理模块</h5>
+          <p class="card-text flex-grow-1">上传、管理并下载相关文件。</p>
+          <div class="mt-auto d-flex flex-wrap gap-2">
+            <a href="{% url 'file_list' %}" class="btn btn-outline-secondary">进入文件管理</a>
+            {% if request.user.is_staff %}
+            <a href="{% url 'manage_categories' %}" class="btn btn-outline-info">分类管理</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 🧪 成果质量检验模块 -->
+    {% if is_quality_staff %}
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">🧪 成果质量检验</h5>
+          <p class="card-text flex-grow-1">检验待完成的数字化成果，确保质量达标。</p>
+          <div class="mt-auto d-flex flex-wrap gap-2">
+            <a href="{% url 'pending_quality_list' %}" class="btn btn-outline-success">开始检验</a>
+{#              <a href="{% url 'relic_dashboard' %}" class="btn btn-outline-primary mt-2">🌍 敦煌文物流散调查</a>#}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+ {% if can_manage_attendance %}
+<div class="col-md-4">
+  <div class="card shadow-sm h-100">
+    <div class="card-body d-flex flex-column">
+      <h5 class="card-title">🕒 考勤统计</h5>
+      <p class="card-text flex-grow-1">请假加班统一管理，支持图表与导出。</p>
+      <div class="mt-auto d-flex flex-wrap gap-2">
+        <a href="{% url 'attendance_list' %}" class="btn btn-outline-dark">进入考勤模块</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+  </div>
+</div>
+{% endblock %}

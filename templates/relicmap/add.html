@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}添加文物流散记录{% endblock %}
+{% block content %}
+<h3>📥 添加文物流散信息</h3>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-success">保存</button>
+  <a href="{% url 'relic_dashboard' %}" class="btn btn-secondary">取消</a>
+</form>
+{% endblock %}

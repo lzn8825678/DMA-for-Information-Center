@@ -1,0 +1,24 @@
+<h4>我的待办</h4>
+<table class="table">
+  <thead><tr><th>ID</th><th>流程</th><th>节点</th><th>到达时间</th><th>操作</th></tr></thead>
+  <tbody>
+  {% for t in tasks %}
+    <tr>
+      <td>{{ t.id }}</td>
+      <td>{{ t.node_instance.process_instance.process.name }} #{{ t.node_instance.process_instance.id }}</td>
+      <td>{{ t.node_instance.node_template.name }}</td>
+      <td>{{ t.created_at|date:"Y-m-d H:i" }}</td>
+      <td>
+        <form action="{% url 'flow:approve' t.id %}" method="post" style="display:inline">{% csrf_token %}
+          <button class="btn btn-sm btn-success">通过</button>
+        </form>
+        <form action="{% url 'flow:reject' t.id %}" method="post" style="display:inline;margin-left:8px">{% csrf_token %}
+          <button class="btn btn-sm btn-danger">驳回</button>
+        </form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5">暂无待办</td></tr>
+  {% endfor %}
+  </tbody>
+</table>

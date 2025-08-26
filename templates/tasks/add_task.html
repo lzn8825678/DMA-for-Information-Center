@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}添加任务{% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="login-card">
+    <h3 class="text-center mb-4">添加新任务</h3>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>任务名称 *</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>描述</label>
+            <textarea name="description" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>所属项目 *</label>
+            <select name="project" class="form-control" required>
+                {% for proj in projects %}
+                    <option value="{{ proj.id }}">{{ proj.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>任务分类（可多选）</label>
+            <select name="categories" class="form-control" multiple>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <small class="form-text text-muted">按 Ctrl 或 ⌘ 键可多选</small>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>任务负责人（可选，默认自己）</label>
+            <select name="responsible" class="form-control">
+                <option value="">（默认自己）</option>
+                {% for u in users %}
+                    <option value="{{ u.id }}">{{ u.full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-microsoft btn-block">提交任务</button>
+            <a href="{% url 'task_list' %}" class="btn btn-secondary btn-block mt-2">取消</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

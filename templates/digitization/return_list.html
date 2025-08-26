@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3>📦 可登记入库的资料</h3>
+
+  {% if records %}
+    <table class="table table-bordered mt-3">
+      <thead>
+        <tr>
+          <th>资料名称</th>
+          <th>数字化人员</th>
+          <th>质检评分</th>
+          <th>检验人</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obj in records %}
+        <tr>
+          <td>{{ obj.name }}</td>
+          <td>{{ obj.taken_by.full_name }}</td>
+          <td>{{ obj.workorder.qualitycheck.ocr_score }}</td>
+          <td>{{ obj.workorder.qualitycheck.inspector.full_name }}</td>
+          <td>
+            <a href="{% url 'confirm_return' obj.id %}" class="btn btn-success btn-sm">确认入库</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info mt-3">暂无可登记入库的资料。</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}分类管理{% endblock %}
+{% block content %}
+<h3 class="mb-4">文件分类管理</h3>
+
+<form method="post" class="form-inline mb-3">
+    {% csrf_token %}
+    <input type="text" name="name" class="form-control mr-2" placeholder="新分类名称" required>
+    <button type="submit" class="btn btn-primary">添加分类</button>
+</form>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>分类名称</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cat in categories %}
+        <tr>
+            <td>{{ cat.name }}</td>
+            <td>
+                <form method="post" action="{% url 'delete_category' cat.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('确定删除该分类吗？');">删除</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2">暂无分类</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

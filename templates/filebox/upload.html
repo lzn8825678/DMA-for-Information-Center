@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}上传文件{% endblock %}
+
+{% block content %}
+<div class="card mt-4 shadow">
+  <div class="card-body">
+    <h4 class="card-title mb-4">📤 上传文件</h4>
+
+    <form id="uploadForm" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="title" class="form-label">名称（用于命名所有文件的前缀）</label>
+        <input type="text" name="title" class="form-control" placeholder="如：测试资料，可选">
+      </div>
+
+      <div class="mb-3">
+        <label for="description" class="form-label">备注</label>
+        <textarea name="description" class="form-control" rows="2" placeholder="可选备注"></textarea>
+      </div>
+
+      <div class="mb-3">
+  <label for="category" class="form-label">分类</label>
+  <select name="category" class="form-select" required>
+    <option value="">-- 请选择所属分类 --</option>
+    {% for cat in categories %}
+      {% include "filebox/category_option.html" with cat=cat prefix="" %}
+    {% endfor %}
+  </select>
+</div>
+
+      <div class="mb-3">
+        <label for="file" class="form-label">选择文件</label>
+        <input type="file" name="file" id="fileInput" class="form-control" multiple required>
+        <small class="form-text text-muted">支持多文件和zip批量上传</small>
+      </div>
+
+      <!-- ✅ 展示文件名 -->
+      <ul id="fileList" class="list-group mb-3 d-none"></ul>
+
+      <!-- ✅ 上传进度条 -->
+      <div class="mb-3 d-none" id="progressWrapper">
+        <label class="form-label">上传进度</label>
+        <div class="progress">
+          <div id="uploadProgress" class="progress-bar progress-bar-striped" role="progressbar"
+               style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            0%
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-primary">🚀 上传</button>
+      </div>
+    </form>
+
+    <div class="mt-3">
+      <a href="{% url 'file_list' %}" class="btn btn-outline-secondary">返回文件列表</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const progressBar = document.getElementById('uploadProgress');
+const progressWrapper = document.getElementById('progressWrapper');
+
+// ✅ 文件选择变化时展示文件名
+fileInput.addEventListener('change', () => {
+    const files = fileInput.files;
+    fileList.innerHTML = '';  // 清空
+    if (files.length > 0) {
+        fileList.classList.remove('d-none');
+        for (let i = 0; i < files.length; i++) {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.innerText = files[i].name;
+            fileList.appendChild(li);
+        }
+    } else {
+        fileList.classList.add('d-none');
+    }
+});
+
+// ✅ Ajax上传
+document.getElementById('uploadForm').addEventListener('submit', function(event) {
+    event.preventDefault();  // 阻止默认提交
+    const form = event.target;
+    const formData = new FormData(form);
+    const xhr = new XMLHttpRequest();
+
+    progressBar.style.width = '0%';
+    progressBar.innerText = '0%';
+    progressBar.setAttribute('aria-valuenow', 0);
+    progressWrapper.classList.remove('d-none');  // 显示进度条
+
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progressBar.style.width = percent + '%';
+            progressBar.innerText = percent + '%';
+            progressBar.setAttribute('aria-valuenow', percent);
+        }
+    };
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            window.location.href = "{% url 'file_list' %}";
+        } else {
+            alert("上传失败，请重试");
+        }
+    };
+
+    xhr.open('POST', window.location.href, true);
+    xhr.send(formData);
+});
+</script>
+{% endblock %}

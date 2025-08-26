@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}项目列表{% endblock %}
+{% load static %}
+
+{% block content %}
+<h3 class="mb-4">所有项目</h3>
+
+<div class="row">
+    {% for proj in projects %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ proj.name }}</h5>
+                    <p class="card-text">
+                        <strong>优先级：</strong> {{ proj.priority }}<br>
+                        <strong>负责人：</strong>
+                        {% for manager in proj.managers.all %}
+                            {{ manager.full_name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            <span class="text-muted">无</span>
+                        {% endfor %}
+                    </p>
+
+                    {% comment %} 进度条显示完成百分比 {% endcomment %}
+                    {% with total=proj.task_set.count completed=proj.task_set.filter(is_done=True).count %}
+                        {% with percent=0 %}
+                            {% if total > 0 %}
+                                {% widthratio completed total 100 as percent %}
+                            {% endif %}
+                            <div class="progress mt-2" style="height: 20px;">
+                                <div class="progress-bar bg-info" role="progressbar"
+                                     style="width: {{ percent }}%;" aria-valuenow="{{ percent }}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ percent }}%
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% endwith %}
+                </div>
+                <div class="card-footer text-end bg-white">
+                    <a href="{% url 'project_detail' proj.id %}" class="btn btn-sm btn-microsoft">查看详情</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">暂无项目</div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

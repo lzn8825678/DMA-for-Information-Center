@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}数量变更日志{% endblock %}
+
+{% block content %}
+<h3>📋 {{ location.country }} - {{ location.institution }} 的变更记录</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>变更时间</th>
+            <th>变更用户</th>
+            <th>原数量</th>
+            <th>新数量</th>
+            <th>变更说明</th>
+            <th>原因</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.changed_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ log.user.full_name }}</td>
+            <td>{{ log.old_count }}</td>
+            <td>{{ log.new_count }}</td>
+            <td>{{ log.change_note }}</td>
+            <td>{{ log.change_reason|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">暂无变更记录</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'relic_dashboard' %}" class="btn btn-secondary mt-3">返回</a>
+{% endblock %}

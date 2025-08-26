@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}出库单列表{% endblock %}
+
+{% block content %}
+    {% if request.user.is_staff %}
+<a href="{% url 'export_full_report' %}" class="btn btn-outline-success mb-3">
+    📤 导出全部出库&工作&质检报表
+</a>
+{% endif %}
+<h3 class="mb-4">待承接的资料出库单</h3>
+
+<div class="row">
+    {% for ob in out_list %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ ob.name }}</h5>
+                    <p class="card-text mb-2"><strong>种类：</strong>{{ ob.get_category_display }}</p>
+                    <p class="card-text"><strong>页数：</strong>{{ ob.pages|default:"未填写" }}</p>
+                    <p class="card-text"><strong>扫描设备：</strong>{{ ob.get_platen_display }}</p>
+                    <p class="card-text"><strong>色纸需求：</strong>{{ ob.color_paper|yesno:"需要,不需要" }}</p>
+                    <p class="card-text"><strong>出库时间：</strong>{{ ob.out_time|date:"Y-m-d H:i" }}</p>
+                    <p class="card-text"><strong>登记人：</strong>{{ ob.librarian.full_name }}</p>
+                </div>
+                <div class="card-footer bg-white text-right">
+                    {% if ob.librarian_id != user.id %}
+                        <a href="{% url 'claim_outbound' ob.id %}" class="btn btn-microsoft btn-sm">承接</a>
+                    {% else %}
+                        <span class="text-muted">不可承接自己登记的资料</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">暂无待承接的出库单</div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,4 @@
+<option value="{{ cat.id }}">{{ prefix }}{{ cat.name }}</option>
+{% for child in cat.children.all %}
+  {% include "filebox/category_option.html" with cat=child prefix=prefix|add:"— " %}
+{% endfor %}

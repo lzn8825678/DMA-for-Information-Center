@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}添加出库单{% endblock %}
+
+{% block content %}
+<div class="login-card">
+    <h3 class="text-center mb-4">添加资料出库单</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>资料名称</label>
+            <input type="text" name="name" class="form-control" required>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>资料种类</label>
+            <select name="category" class="form-control" required>
+                <option value="book">图书</option>
+                <option value="photo">照片</option>
+                <option value="manuscript">手稿</option>
+                <option value="other">其它</option>
+            </select>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>页数</label>
+            <input type="number" name="pages" class="form-control" placeholder="可选填写">
+        </div>
+
+        <div class="form-group mt-3">
+            <label>扫描压板需求</label>
+            <select name="platen" class="form-control" required>
+                <option value="flat">平板</option>
+                <option value="vshape">V型板</option>
+            </select>
+        </div>
+
+        <div class="form-group form-check mt-3">
+            <input type="checkbox" name="color_paper" class="form-check-input" id="colorPaperCheck">
+            <label class="form-check-label" for="colorPaperCheck">需要色纸</label>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>出库书况登记</label>
+            <textarea name="condition" class="form-control" rows="3" placeholder="如有破损请详细说明"></textarea>
+        </div>
+
+        <div class="form-group mt-3">
+            <label>备注</label>
+            <textarea name="notes" class="form-control" rows="2"></textarea>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-microsoft btn-block">保存出库单</button>
+            <a href="{% url 'outbound_list' %}" class="btn btn-secondary btn-block mt-2">取消</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

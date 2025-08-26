@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}考勤记录列表{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h3 class="mb-4">考勤记录统计</h3>
+
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-auto">
+      <label for="year" class="form-label">年份</label>
+      <input type="number" name="year" id="year" value="{{ year }}" class="form-control">
+    </div>
+    <div class="col-auto">
+      <label for="month" class="form-label">月份</label>
+      <input type="number" name="month" id="month" value="{{ month }}" class="form-control">
+    </div>
+    <div class="col-auto align-self-end">
+      <button type="submit" class="btn btn-outline-primary">筛选</button>
+    </div>
+    <div class="col-auto align-self-end">
+      <a href="{% url 'attendance_add' %}" class="btn btn-success">添加记录</a>
+      <a href="{% url 'export_attendance_csv' %}" class="btn btn-secondary">导出CSV</a>
+    </div>
+  </form>
+
+  <!-- 图表 -->
+  <div class="row">
+    <div class="col-md-6">
+      <canvas id="leaveChart"></canvas>
+    </div>
+    <div class="col-md-6">
+      <canvas id="overtimeChart"></canvas>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <table class="table table-striped mt-4">
+    <thead>
+      <tr>
+        <th>类型</th>
+        <th>人员</th>
+        <th>开始时间</th>
+        <th>时长</th>
+        <th>登记人</th>
+        <th>登记时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in records %}
+      <tr>
+        <td>{{ record.get_type_display }}</td>
+        <td>{{ record.person_name }}</td>
+        <td>{{ record.start_date }}</td>
+        <td>{{ record.duration }}</td>
+        <td>{{ record.registrar.full_name }}</td>
+        <td>{{ record.created_at|date:"Y-m-d H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script src="/static/js/Chart.min.js"></script>
+<script>
+const leaveCtx = document.getElementById('leaveChart').getContext('2d');
+const overtimeCtx = document.getElementById('overtimeChart').getContext('2d');
+
+new Chart(leaveCtx, {
+  type: 'bar',
+  data: {
+    labels: {{ leave_labels|safe }},
+    datasets: [{
+      label: '请假天数',
+      data: {{ leave_values|safe }},
+    }]
+  },
+  options: { responsive: true }
+});
+
+new Chart(overtimeCtx, {
+  type: 'bar',
+  data: {
+    labels: {{ overtime_labels|safe }},
+    datasets: [{
+      label: '加班小时',
+      data: {{ overtime_values|safe }},
+    }]
+  },
+  options: { responsive: true }
+});
+</script>
+{% endblock %}

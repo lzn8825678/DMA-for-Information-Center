@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}待检验成果列表{% endblock %}
+
+{% block content %}
+<h3 class="mb-4">待检验成果</h3>
+
+<div class="row">
+    {% for wo in workorders %}
+        {% if wo.operator_id != user.id %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">批次号：{{ wo.batch_no }}</h5>
+                    <p class="card-text"><strong>资料名称：</strong>{{ wo.out_bound.name }}</p>
+                    <p class="card-text"><strong>数字化人员：</strong>{{ wo.operator.full_name }}</p>
+                    <p class="card-text"><strong>登记时间：</strong>{{ wo.registered_at|date:"Y-m-d H:i" }}</p>
+                </div>
+                <div class="card-footer bg-white text-right">
+                    <a href="{% url 'check_quality' wo.id %}" class="btn btn-sm btn-microsoft">进入检验</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">暂无待检验的成果</div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
