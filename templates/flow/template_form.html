@@ -24,10 +24,10 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label">主表单（FormSchema）</label>
-      {{ form.form }}
-      {% if form.form.errors %}<div class="text-danger small">{{ form.form.errors }}</div>{% endif %}
-    </div>
+  <label class="form-label">主表单（FormDef）</label>
+  {{ form.form_def }}
+  {% if form.form_def.errors %}<div class="text-danger small">{{ form.form_def.errors }}</div>{% endif %}
+</div>
 
     <div class="row">
       <div class="col-md-6 mb-3">
